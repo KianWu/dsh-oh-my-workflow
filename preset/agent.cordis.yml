@@ -1,0 +1,287 @@
+# Workflow — one agent preset that combines three capabilities into a single
+# software-delivery line:
+#
+#   1. dsh-ops Native tools (files + shell + progressive discovery) through the
+#      public `dsh-ops/integration` entry only — never a private lib/* path;
+#   2. a turn-boundary guard that asks for real verification evidence and stops
+#      repeated same-idea failures (`turn-guard.mjs`, preset plane only);
+#   3. a curated 22-skill method pack (routing, project entry, engineering
+#      baseline, Matt Pocock methods, seven stack loop skills).
+#
+# Every row after the first four mirrors the shipped `standard` preset row for
+# row, so the sandbox, approvals, compaction, planning and delegation behavior
+# stay exactly what a Standard session gets. Comments record host-plane
+# constraints, not preferences.
+
+# ── identity ────────────────────────────────────────────────────────────────
+
+# `prefix` replaces the deployment persona for agents on this preset only.
+# `complete` stays false so the tool guidance, runtime context, and approval /
+# sandbox notices remain intact. The host registers only `provider` and
+# `model` as prompt variables; unknown {{...}} references kill the session on
+# its first render, so the working directory is deliberately not repeated.
+- id: persona
+  name: '@deepseek-ai/dsh-persona'
+  config:
+    prefix: |-
+      你是运行在 {{model}} 上的软件交付代理，本会话使用 Workflow 工作流预设。默认用中文汇报。
+
+      主线：复述目标 → 判断档位 → 实现 → 验证 → 汇报。
+      - 快速档：目标明确、改动小、风险低；直接改并验证。
+      - 标准档：多文件或可见行为变化；先给 3–6 步简短计划，再实现。
+      - 深入档：需求含糊、高风险、结构变化；先澄清/建模/写规格，经用户确认后实现。
+      - 长任务是正交分支：用 st-ledger / st-context-reset / to-tickets / handoff。
+
+      项目入口：进入代码项目先查 `.agent/AGENTS.md`；存在则读取遵循、不覆盖；缺失则加载 wf-project-init，扫描后创建，只写事实、未知标「待确认」。深入/长任务记录放 `.agent/workflow/`，快速档不建过程文档。
+
+      工程基线：复用优先；解根因；最小 diff；开工前明确边界与验收；只清理本次孤儿；同步长期文档；证据先于结论。
+
+      纪律：改后运行真实验证；读回文件不算行为证据；同一修法失败两次就停并验证共同前提（st-unstick）；无法验证时明确披露范围。默认只改和验证；提交、开 PR/push 需用户明确要求，不自动合并。委派只用于宽搜索/批量阅读/独立评审，子代理结果必须带证据。
+
+      优先级：用户明确要求 > 项目 AGENTS/规范 > 本基线。
+
+      技能：任务匹配时先加载 wf-route、wf-engineering、grilling、to-spec、to-tickets、implement、code-review、handoff、st-verify-loop、st-review-loop、st-ledger、st-context-reset、st-ready 等。
+
+      Harness 规则：改文件后没有成功验证就结束，守卫会打回；无法验证时用一行说明原因。
+
+# Workspace instruction files stay injected: they are the repository's own
+# rules and the workflow assumes the agent reads them before planning.
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+
+# ── OPS Native integration ──────────────────────────────────────────────────
+
+# The stable public entry only. This row is scoped to the preset, so it cannot
+# change dsh-ops' global settings or another preset's consumer plan. The preset
+# id must equal the declaration id above; resident inspect/glob/grep stay on,
+# `ops_bash` is published where the host allows it, and official read/glob/grep
+# are deduplicated in favor of their OPS counterparts. Official write/edit
+# remain available; the host PowerShell row is kept.
+- id: ops-integration
+  name: ./ops-integration.mjs
+
+# ── turn guard ──────────────────────────────────────────────────────────────
+
+# `agent/turn-stopping` is the serial hook before a finished turn closes. The
+# guard reads the turn's durable log, and when a rule is violated it steers one
+# short message back so the turn runs another step. It never blocks the turn
+# on its own failure, and its budget lives only in this mounted instance.
+- id: turn-guard
+  name: ./turn-guard.mjs
+  config:
+    enabled: true
+    evidence: true
+    unstick: true
+    failStreak: 2
+    maxSteersPerTurn: 2
+    includeSubagents: true
+    mutationTools: [write, edit, ops_replace, ops_write_file, ops_edit_file, ops_copy, ops_move, ops_remove]
+    checkTools: [bash, pwsh, ops_bash]
+    documentationSuffixes: ['.md', '.mdx', '.txt', '.rst', '.adoc']
+
+# ── shell ───────────────────────────────────────────────────────────────────
+
+# Same pair as the standard preset; the OPS shell row adds `ops_bash` on top.
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+  disabled: !!js process.platform === 'win32'
+
+- id: tool-pwsh
+  name: '@deepseek-ai/dsh-tool-pwsh'
+  disabled: !!js process.platform !== 'win32'
+
+# ── filesystem ──────────────────────────────────────────────────────────────
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+  config:
+    sampleOverCapGlobResults: false
+
+# ── background jobs ─────────────────────────────────────────────────────────
+
+- id: tool-jobs
+  name: '@deepseek-ai/dsh-tool-jobs'
+
+# ── skills ──────────────────────────────────────────────────────────────────
+
+# The skill REGISTRY is host-plane and layered per scope, so these rows need no
+# realm. `customSkillDirs` (rank 300) is additive: project roots still win, the
+# user's own roots still load, and the deployment default stays intact —
+# unlike `bundledSkillDir`, which would replace it. The path is derived from
+# this composition's own baseUrl so link installs and reinstalls cannot break
+# it; a missing directory throws at mount instead of silently presenting an
+# empty catalog.
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+  config:
+    customSkillDirs: !!js >-
+      (() => {
+        const { fileURLToPath } = process.getBuiltinModule('node:url')
+        const fs = process.getBuiltinModule('node:fs')
+        const dir = fileURLToPath(new URL('./skills', ctx.baseUrl))
+        if (!fs.existsSync(dir)) throw new Error(`workflow: bundled skills directory not found: ${dir}`)
+        return [dir]
+      })()
+
+# The catalog is the pack's entry point. 500 is enough for every skill's
+# trailing "Use when …" clause; a tighter cap would silently drop the only
+# routing signal each description has.
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+  config:
+    catalogDescriptionMaxLength: 500
+
+# ── goals ───────────────────────────────────────────────────────────────────
+
+# Only the model-facing tool; the goal SERVICE and its driver are host-plane.
+- id: command-goal
+  name: '@deepseek-ai/dsh-command-goal'
+
+- id: tool-goal
+  name: '@deepseek-ai/dsh-tool-goal'
+
+# ── plan mode ───────────────────────────────────────────────────────────────
+
+# Plan state is per-agent, so an entry-local realm is its correct lifetime.
+- id: planning
+  name: cordis:group
+  group: true
+  isolate:
+    planMode: true
+  config:
+    - id: plan-mode
+      name: '@deepseek-ai/dsh-plan-mode'
+      config:
+        section: |
+          You are in plan mode. Stay in plan mode until exit_plan_mode succeeds or the user switches the session mode. Imperative language to implement changes means plan the implementation, not execute it. A user's conversational agreement — including an answer confirming something you asked — approves nothing and does not end plan mode; fold the confirmed decision into the plan and submit it through exit_plan_mode.
+
+          Explore first. Use non-mutating reads, searches, static analysis, and checks to ground the plan in the actual repository. Do not edit or write files, change configuration, run formatters or code generation that rewrites tracked files, commit, or otherwise carry out the plan. Prefer existing functions and patterns over new machinery.
+
+          The tool catalog stays the same across modes for request-cache stability. These plan-mode rules override any later tool description or guidance that suggests using mutation tools; those tools remain listed to keep the tool catalog unchanged. Do not use todo_write to track this planning phase: it tracks implementation after an approved plan, while the plan itself belongs in exit_plan_mode.
+
+          Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
+
+          Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
+
+          When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
+
+# ── compaction ──────────────────────────────────────────────────────────────
+
+# `compaction-basic` reads `toolResultPruner` through `ctx.get`, so the pruner
+# shares this realm. `tokenMeter` stays host-plane: its projection units are
+# process-wide, so a preset must not own them.
+- id: compaction
+  name: cordis:group
+  group: true
+  isolate:
+    compaction: true
+    toolResultPruner: true
+  config:
+    - id: compaction-basic
+      name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+
+    - id: tool-result-pruner
+      name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+      config:
+        thresholdChars: 8192
+        headChars: 4096
+        tailChars: 1024
+
+# ── delegation and workflows ────────────────────────────────────────────────
+
+# The `subagents` registry and its spawn/fork backends are host-plane
+# singletons; this preset contributes the delegation TOOLS that resolve them.
+# `workflows` has no reader outside an agent, so every row touching it shares
+# one entry-local realm here.
+- id: delegation
+  name: cordis:group
+  group: true
+  isolate:
+    workflowEngine: true
+  config:
+    # In host 0.2.2+, list_agents is registered by tool-subagent-control's main
+    # entry; ./list-agents is no longer exported and would break the preset.
+    - id: tool-subagent-control
+      name: '@deepseek-ai/dsh-tool-subagent-control'
+
+    - id: tool-subagent
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: spawn
+        toolName: subagent
+        modelSelectionSettings: true
+        backgroundMode: continuable
+
+    - id: tool-subagent-fork
+      name: '@deepseek-ai/dsh-tool-subagent'
+      config:
+        provider: fork
+        toolName: subagent_fork
+        backgroundMode: continuable
+
+    - id: tool-subagent-codex
+      name: '@deepseek-ai/dsh-tool-subagent'
+      disabled: true
+      config:
+        provider: codex
+        toolName: subagent_codex
+        backgroundMode: one-shot
+        maxDepth: provider-managed
+
+    - id: tool-subagent-claude-code
+      name: '@deepseek-ai/dsh-tool-subagent'
+      disabled: true
+      config:
+        provider: claude-code
+        toolName: subagent_claude_code
+        backgroundMode: one-shot
+        maxDepth: provider-managed
+
+    - id: workflow-ptc
+      name: '@deepseek-ai/dsh-workflow-ptc'
+      config:
+        provider: spawn
+
+    - id: tool-workflow
+      name: '@deepseek-ai/dsh-tool-workflow'
+
+    - id: tool-ralph
+      name: '@deepseek-ai/dsh-tool-ralph'
+      disabled: true
+      config:
+        subagentProvider: spawn
+        maxRounds: 64
+
+# ── remaining model-facing rows ─────────────────────────────────────────────
+
+- id: tool-ask-user
+  name: '@deepseek-ai/dsh-tool-ask-user'
+
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+
+# The `web` service and its providers stay host-plane; only the tool is
+# per-session.
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+  config:
+    fetch: true
+    searchTimeoutMs: 60000
+
+- id: present
+  name: '@deepseek-ai/dsh-tool-present'
+
+# Host-plane management tools are never part of an agent's catalog by default.
+- id: tool-plugin-manager
+  name: '@deepseek-ai/dsh-plugin-manager/tools'
+  disabled: true

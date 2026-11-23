@@ -1,0 +1,34 @@
+# dsh-oh-my-workflow — one agent preset and one lifecycle guard.
+#
+# Rows inserted by a bundle patch compose into the profile's ROOT Include tree,
+# whose baseUrl is the PROFILE directory. That is why the include path below
+# steps through node_modules. The included preset file then sets its own
+# baseUrl to its own directory, so every `./...` row inside it resolves beside
+# the preset file (turn-guard.mjs, guard/*, skills/).
+#
+# `insert[].name` is anchored to THIS patch file's directory (the package
+# root) by the loader, so the uninstall guard row is `./preset/...` — not
+# `./node_modules/...`. The two path bases must not be mixed.
+- insert:
+    - id: preset-workflow
+      name: "@deepseek-ai/dsh-agent-preset"
+      config:
+        id: workflow
+        name: Workflow
+        description: 开箱即用的 AI 软件交付工作流：自动判断任务大小，按「快速 / 标准 / 深入」三档推进；22 个技能覆盖需求追问、写规格、拆工单、实现、评审、验证与交接；内置轮次守卫——改完必须跑真实验证，同一个修法失败两次就停下来重新核对前提，避免 AI 反复瞎改。灵感来自 Karpathy 的 AI 编程四原则与 Matt Pocock 的工程技能包。
+        order: 7
+        plugins:
+          - id: workflow-composition
+            name: "cordis:include"
+            config:
+              path: "./node_modules/dsh-oh-my-workflow/preset/agent.cordis.yml"
+
+    # Lifecycle guard: the only row that writes the user's profile. It clears
+    # a DEFAULT PRESET POINTER only when that pointer names `workflow` and this
+    # bundle is no longer usable. It never rewrites another preset's selection,
+    # never reflows YAML, never touches session content, and is idempotent.
+    - id: workflow-uninstall-guard
+      name: "./preset/uninstall-guard.mjs"
+      config:
+        presetId: workflow
+        fallbackId: standard

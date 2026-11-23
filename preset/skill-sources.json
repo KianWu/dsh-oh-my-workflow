@@ -1,0 +1,401 @@
+{
+  "version": 1,
+  "generatedBy": "scripts/sync-skills.mjs",
+  "upstreams": {
+    "mattpocock/skills": {
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "note": "内容取自本机 magpie library 镜像；本地适配记录在每个技能条目中。"
+    },
+    "dsh-stack": {
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack"
+    }
+  },
+  "skills": {
+    "code-review": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/code-review",
+      "catalogDescription": "从 Standards 与 Spec 两轴并行评审 diff。Use when reviewing a branch, PR, or work-in-progress.",
+      "localAdaptations": [
+        {
+          "removed": "The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+          "replacement": "如果项目已配置 issue tracker，按项目约定使用它；如果没有，使用本地 markdown tracker：把内容写入 `.agent/workflow/`（specs、tickets、plans 三个目录按需创建），并在 `.agent/AGENTS.md` 的「文档与过程记录位置」中说明。"
+        },
+        {
+          "removed": "A spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.",
+          "replacement": "A spec file under `docs/`, `specs/`, `.agent/workflow/specs/`, or `.scratch/` matching the branch name or feature."
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "从 Standards 与 Spec 两轴并行评审 diff。Use when reviewing a branch, PR, or work-in-progress."
+        }
+      ]
+    },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/codebase-design",
+      "catalogDescription": "深模块设计词汇：模块、接口、深度、接缝、适配器。Use when designing or reviewing module boundaries.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "深模块设计词汇：模块、接口、深度、接缝、适配器。Use when designing or reviewing module boundaries."
+        }
+      ]
+    },
+    "domain-modeling": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/domain-modeling",
+      "catalogDescription": "打磨领域模型、统一语言、CONTEXT.md 与 ADR。Use when defining terms or recording design decisions.",
+      "localAdaptations": [
+        {
+          "removed": "## File structure\n\nMost repos have a single context:",
+          "replacement": "## File structure\n\n使用 workflow 预设且项目没有既有布局时，把 `CONTEXT.md` 放在 `.agent/workflow/CONTEXT.md`，ADR 放在 `.agent/workflow/adr/`；项目已有 `CONTEXT.md` / `docs/adr/` 时遵循既..."
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "打磨领域模型、统一语言、CONTEXT.md 与 ADR。Use when defining terms or recording design decisions."
+        }
+      ]
+    },
+    "grill-with-docs": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/grill-with-docs",
+      "catalogDescription": "边追问边产出 ADR 与术语表。Use when grilling should also write design docs.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "边追问边产出 ADR 与术语表。Use when grilling should also write design docs."
+        }
+      ]
+    },
+    "grilling": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/productivity/grilling",
+      "catalogDescription": "就一个计划/决定/想法连续追问直到共识。Use when the user asks to grill or stress-test thinking.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "就一个计划/决定/想法连续追问直到共识。Use when the user asks to grill or stress-test thinking."
+        }
+      ]
+    },
+    "handoff": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/productivity/handoff",
+      "catalogDescription": "把当前对话压缩成交接文档。Use when another agent or session will continue the work.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "把当前对话压缩成交接文档。Use when another agent or session will continue the work."
+        }
+      ]
+    },
+    "implement": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/implement",
+      "catalogDescription": "按规格或工单实现并验证。Use when a spec or tickets are ready to build.",
+      "localAdaptations": [
+        {
+          "removed": "Call the Skill tool with \"tdd\" where possible, at pre-agreed seams.",
+          "replacement": "在预先约定的接缝处先写一条能因正确原因失败的测试（如果项目有测试框架）；没有测试框架时直接做最小实现，并用真实命令验证。不要为了形式新建测试框架。"
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "按规格或工单实现并验证。Use when a spec or tickets are ready to build."
+        }
+      ]
+    },
+    "implement-spec": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/implement-spec",
+      "catalogDescription": "实现 /to-spec 与 /to-tickets 的产物。Use when implementing published specs and tickets.",
+      "localAdaptations": [
+        {
+          "removed": "The issue tracker should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+          "replacement": "如果项目已配置 issue tracker，按项目约定使用它；如果没有，使用本地 markdown tracker：把内容写入 `.agent/workflow/`（specs、tickets、plans 三个目录按需创建），并在 `.agent/AGENTS.md` 的「文档与过程记录位置」中说明。"
+        },
+        {
+          "removed": "   - calls the Skill tool with `tdd` to build the ticket;",
+          "replacement": "   - 先写/更新能证明该工单的测试或最小复现，再做最小实现；没有测试框架时直接实现并用真实命令验证；"
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "实现 /to-spec 与 /to-tickets 的产物。Use when implementing published specs and tickets."
+        }
+      ]
+    },
+    "improve-codebase-architecture": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/improve-codebase-architecture",
+      "catalogDescription": "扫描代码库找深模块机会并产出 HTML 报告。Use when the user wants architecture improvement candidates.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "扫描代码库找深模块机会并产出 HTML 报告。Use when the user wants architecture improvement candidates."
+        }
+      ]
+    },
+    "st-context-reset": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-context-reset",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "维护 PROGRESS.md 供新会话继续。Use when handing long work to a new session.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "维护 PROGRESS.md 供新会话继续。Use when handing long work to a new session."
+        }
+      ]
+    },
+    "st-ledger": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-ledger",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "长跑决策日志，每步前读回。Use when a long task needs durable decisions.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "长跑决策日志，每步前读回。Use when a long task needs durable decisions."
+        }
+      ]
+    },
+    "st-plan-loop": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-plan-loop",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "写带验收检查的编号计划，冷评审后执行。Use when a task needs a short plan loop.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "写带验收检查的编号计划，冷评审后执行。Use when a task needs a short plan loop."
+        }
+      ]
+    },
+    "st-ready": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-ready",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "做到可合由人点合并，检查交付前状态。Use when preparing work for human merge.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "做到可合由人点合并，检查交付前状态。Use when preparing work for human merge."
+        }
+      ]
+    },
+    "st-review-loop": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-review-loop",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "作者视角 + 新上下文评审，最多四轮。Use when changes need review until aligned.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "作者视角 + 新上下文评审，最多四轮。Use when changes need review until aligned."
+        }
+      ]
+    },
+    "st-unstick": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-unstick",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "重复失败时找出共同前提并换路径。Use when the same fix fails twice.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "重复失败时找出共同前提并换路径。Use when the same fix fails twice."
+        }
+      ]
+    },
+    "st-verify-loop": {
+      "source": "dsh-stack",
+      "repository": "https://github.com/58fly/dsh-stack",
+      "version": "0.3.3",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 AICodeKing; dsh-stack contributors",
+      "upstreamPath": "preset/skills/st-verify-loop",
+      "upstreamRepository": "https://github.com/aicodeking/deepseek-stack",
+      "catalogDescription": "改—跑真检查—读报错—修根因—再跑。Use when changes need verification until green.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "改—跑真检查—读报错—修根因—再跑。Use when changes need verification until green."
+        }
+      ]
+    },
+    "to-spec": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/to-spec",
+      "catalogDescription": "把当前对话综合成规格并发布到 tracker 或 .agent/workflow/specs。Use when turning discussion into a spec.",
+      "localAdaptations": [
+        {
+          "removed": "The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+          "replacement": "如果项目已配置 issue tracker，按项目约定使用它；如果没有，使用本地 markdown tracker：把内容写入 `.agent/workflow/`（specs、tickets、plans 三个目录按需创建），并在 `.agent/AGENTS.md` 的「文档与过程记录位置」中说明。"
+        },
+        {
+          "removed": "3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional t...",
+          "replacement": "3. Write the spec using the template below, then publish it to the configured tracker; if none is configured, write it to `.agent/workflow/specs/<feature-slu..."
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "把当前对话综合成规格并发布到 tracker 或 .agent/workflow/specs。Use when turning discussion into a spec."
+        }
+      ]
+    },
+    "to-tickets": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/to-tickets",
+      "catalogDescription": "把计划/规格拆成带阻塞边的 tracer-bullet 工单。Use when breaking work into tickets.",
+      "localAdaptations": [
+        {
+          "removed": "The issue tracker and triage label vocabulary should have been provided to you. If not, tell the user to run `/setup-matt-pocock-skills`.",
+          "replacement": "如果项目已配置 issue tracker，按项目约定使用它；如果没有，使用本地 markdown tracker：把内容写入 `.agent/workflow/`（specs、tickets、plans 三个目录按需创建），并在 `.agent/AGENTS.md` 的「文档与过程记录位置」中说明。"
+        },
+        {
+          "removed": "Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured; the tickets are the same either way, only the shape of t...",
+          "replacement": "Publish the approved tickets. **How** depends on the configured tracker. 没有配置时使用本地 markdown tracker：一个 ticket 一个文件，放在 `.agent/workflow/tickets/<feature-slug>..."
+        },
+        {
+          "removed": ".scratch/<feature-slug>/issues/<NN>-<slug>.md",
+          "replacement": ".agent/workflow/tickets/<feature-slug>/<NN>-<slug>.md"
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "把计划/规格拆成带阻塞边的 tracer-bullet 工单。Use when breaking work into tickets."
+        }
+      ]
+    },
+    "wayfinder": {
+      "source": "mattpocock/skills",
+      "repository": "https://github.com/mattpocock/skills",
+      "commit": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 Matt Pocock",
+      "upstreamPath": "skills/engineering/wayfinder",
+      "catalogDescription": "把超大工作规划成决策地图并逐个消解。Use when work exceeds one agent session.",
+      "localAdaptations": [
+        {
+          "removed": "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** The issue tracker should have been provided to you ...",
+          "replacement": "**Where the map, its child tickets, blocking, and frontier queries physically live is tracker-specific.** 如果项目没有配置 tracker，使用本地 markdown tracker：map 写入 `.age..."
+        },
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "把超大工作规划成决策地图并逐个消解。Use when work exceeds one agent session."
+        }
+      ]
+    },
+    "wf-engineering": {
+      "source": "original",
+      "repository": null,
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 oh-my-workflow contributors",
+      "catalogDescription": "通用开发基线：复用、根因、最小 diff、显式边界与验证证据。Use when implementing or closing a task.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "通用开发基线：复用、根因、最小 diff、显式边界与验证证据。Use when implementing or closing a task."
+        }
+      ]
+    },
+    "wf-project-init": {
+      "source": "original",
+      "repository": null,
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 oh-my-workflow contributors",
+      "catalogDescription": "初始化或补充 .agent/AGENTS.md 与 .agent/workflow 记录布局。Use when a code project lacks an entry document.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "初始化或补充 .agent/AGENTS.md 与 .agent/workflow 记录布局。Use when a code project lacks an entry document."
+        }
+      ]
+    },
+    "wf-route": {
+      "source": "original",
+      "repository": null,
+      "license": "MIT",
+      "copyright": "Copyright (c) 2026 oh-my-workflow contributors",
+      "catalogDescription": "Workflow 三档路由与长任务分支。Use when starting a task or when size/risk is unclear.",
+      "localAdaptations": [
+        {
+          "note": "catalog description shortened for token cost; skill body unchanged",
+          "catalogDescription": "Workflow 三档路由与长任务分支。Use when starting a task or when size/risk is unclear."
+        }
+      ]
+    }
+  }
+}

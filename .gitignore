@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# build / temp artifacts
+.tmp/
+*.tgz
+coverage/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
