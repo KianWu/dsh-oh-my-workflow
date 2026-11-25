@@ -83,4 +83,15 @@ check('persona points at the route skill and the main skills', () => {
   assert.match(persona, /code-review/)
 })
 
+check('complex tasks route to multi-agent delegation', () => {
+  assert.match(route, /多 agent 协作/)
+  assert.match(route, /subagent_fork/)
+  assert.match(route, /并行/)
+  assert.match(route, /上下文/)
+  assert.match(route, /拆分并行委派/)
+  assert.match(persona, /多 agent 协作/)
+  assert.match(persona, /subagent_fork/)
+  assert.match(engineering, /委派/)
+})
+
 console.log(`\n${passed} checks passed`)

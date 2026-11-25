@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-25
+
+### Added
+
+- 复杂/深入档与长任务的**多 agent 协作**纪律：persona、`wf-route`、`wf-engineering` 明确要求把工作拆成可独立推进的子任务，用 `subagent`（全新上下文，可并行）/`subagent_fork`（继承上下文）委派，宽搜索/批量阅读/独立评审/批量扇出分别交给子代理或 `workflow`；主线只保留目标、决策与集成，子代理只回传结论与证据，控制上下文膨胀。
+- `wf-route` 深入档流程加入“拆分并行委派”，并新增“复杂/长任务全自己扛”的反模式。
+
 ## [0.2.0] - 2026-11-25
 
 ### Changed
