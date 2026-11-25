@@ -46,7 +46,7 @@
     "LICENSE"
   ],
   "bin": {
-    "dsh-oh-my-workflow": "./bin/oh-my-workflow.mjs"
+    "dsh-oh-my-workflow": "bin/oh-my-workflow.mjs"
   },
   "scripts": {
     "test": "node test/guard.test.mjs && node test/ops-outcome.test.mjs && node test/routing.test.mjs && node test/project-init.test.mjs && node test/uninstall-guard.test.mjs && node scripts/verify-preset.mjs && node scripts/verify-ops-integration.mjs && node scripts/verify-skills.mjs && node scripts/verify-manifest.mjs && node scripts/verify-mount.mjs && node scripts/verify-host-contract.mjs",
