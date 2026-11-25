@@ -67,10 +67,14 @@ function exitCodeFromText(text) {
  * Reduce one outcome to process facts.
  * Returns `null` for non-shell tools, otherwise `{ completed, exitCode, signal, command, reason }`.
  */
-export function processFact(outcome) {
+export function processFact(outcome, options = {}) {
   if (!SHELLS.has(outcome?.name)) return null
   const command = commandOf(outcome)
   const shell = opsShellOf(outcome)
+  // Official `bash`/`pwsh` report `[exit code: N]` only for a non-zero exit, so
+  // a non-error result with no marker and no signal is a successful run. OPS
+  // results always carry explicit `opsShell` facts and are never assumed.
+  const assumeSuccess = options.assumeOfficialShellSuccess !== false
 
   // OPS: a background/promoted result has no `opsShell` facts and is never a
   // completed foreground process. A signal also outranks any text rendering.
@@ -93,6 +97,9 @@ export function processFact(outcome) {
     return { completed: false, exitCode: code, signal, command, reason: 'signal' }
   }
   if (code === undefined) {
+    if (assumeSuccess && outcome?.isError !== true) {
+      return { completed: true, exitCode: 0, signal: undefined, command, reason: 'assumed-ok' }
+    }
     return { completed: false, exitCode: undefined, signal: undefined, command, reason: 'missing-exit-code' }
   }
   return { completed: code === 0, exitCode: code, signal: undefined, command, reason: code === 0 ? 'ok' : 'non-zero-exit' }
@@ -113,6 +120,9 @@ const PROJECT_CHECK_PATTERNS = [
   /\bmake\s+(?:test|check|build)\b/i,
   /\bcmake\s+--build\b/i,
   /\bnode\s+--test\b/i,
+  /\b(?:bun|deno)\s+(?:test|check|lint)\b/i,
+  /\b(?:uv|poetry|pdm|pipenv)\s+run\s+(?:pytest|mypy|ruff|tox|nox)\b/i,
+  /\b(?:npm|pnpm|yarn|bun)\s+run\s+[\w:-]*(?:test|check|verify|build|lint|type|spec|e2e)[\w:-]*/i,
 ]
 
 /** Running a target script is evidence only when it names an edited file. */
@@ -124,6 +134,7 @@ const TARGET_RUN_PATTERNS = [
   /\bpython(?:3)?\s+(?:\.\/)?([^\s]+\.py)\b/i,
   /\bpython(?:3)?\s+-c\b/i,
   /(?:^|\s)(?:\.\/)?([^\s]+\.(?:exe|cmd|bat|ps1|sh))\b/i,
+  /\b(?:dotnet|go|gradle|gradlew|flutter|deno|bun)\s+run\b/i,
 ]
 
 function mentionsAny(command, files) {
@@ -160,7 +171,7 @@ export function classifyVerificationCommand(command, config = {}, mutatedFiles =
 
 /** Full verification fact for one shell outcome. */
 export function verificationFact(outcome, config = {}, mutatedFiles = []) {
-  const process = processFact(outcome)
+  const process = processFact(outcome, config)
   if (process === null) return null
   const classification = process.completed
     ? classifyVerificationCommand(process.command, config, mutatedFiles)

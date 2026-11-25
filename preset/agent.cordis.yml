@@ -77,6 +77,8 @@
     failStreak: 2
     maxSteersPerTurn: 2
     includeSubagents: true
+    evidenceScope: balanced
+    assumeOfficialShellSuccess: true
     mutationTools: [write, edit, ops_replace, ops_write_file, ops_edit_file, ops_copy, ops_move, ops_remove]
     checkTools: [bash, pwsh, ops_bash]
     documentationSuffixes: ['.md', '.mdx', '.txt', '.rst', '.adoc']

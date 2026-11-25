@@ -93,6 +93,22 @@ check('command classification separates project checks, target runs and noise', 
   assert.equal(classifyVerificationCommand('node custom-check.js', { commands: ['node custom-check.js'] }, []).strong, true)
 })
 
+check('official shell success without a marker is assumed ok; errors are not', () => {
+  const ok = toolOutcomes(events(
+    call(1, 'c1', 'pwsh', { command: 'npm test' }),
+    result(1, 'c1', { text: 'all tests passed' }),
+  ))[0]
+  assert.equal(processFact(ok).completed, true)
+  assert.equal(processFact(ok).reason, 'assumed-ok')
+  assert.equal(processFact(ok, { assumeOfficialShellSuccess: false }).completed, false)
+
+  const errored = toolOutcomes(events(
+    call(1, 'c2', 'pwsh', { command: 'npm test' }),
+    result(1, 'c2', { text: 'boom', isError: true }),
+  ))[0]
+  assert.equal(processFact(errored).completed, false)
+})
+
 check('failureSummary counts same-kind trailing failures only', () => {
   const same = toolOutcomes(events(
     ...officialShell(1, 'c1', 'pwsh', 'npm test', 1),
@@ -207,15 +223,26 @@ await checkAsync('documentation-only edit is exempt; mixed edit is not', async (
   assert.match(textOf(mixed.steers[0]), /core\.ts/)
 })
 
-await checkAsync('nudge lists only edits after the last successful check', async () => {
+await checkAsync('balanced: one check after the first edit covers later edits', async () => {
   const run = makeRun()
   await run.stop(events(
-    call(1, 'c1', 'write', { file_path: 'already-proven.ts' }), result(1, 'c1'),
+    call(1, 'c1', 'write', { file_path: 'first.ts' }), result(1, 'c1'),
     ...officialShell(1, 'c2', 'pwsh', 'npm test', 0),
-    call(1, 'c3', 'edit', { file_path: 'still-unproven.ts' }), result(1, 'c3'),
+    call(1, 'c3', 'edit', { file_path: 'later.ts' }), result(1, 'c3'),
   ), 1)
-  assert.match(textOf(run.steers[0]), /still-unproven\.ts/)
-  assert.doesNotMatch(textOf(run.steers[0]), /already-proven/)
+  assert.equal(run.steers.length, 0)
+})
+
+await checkAsync('strict scope still asks for a check after the last edit', async () => {
+  const run = makeRun({ evidenceScope: 'strict' })
+  await run.stop(events(
+    call(1, 'c1', 'write', { file_path: 'first.ts' }), result(1, 'c1'),
+    ...officialShell(1, 'c2', 'pwsh', 'npm test', 0),
+    call(1, 'c3', 'edit', { file_path: 'later.ts' }), result(1, 'c3'),
+  ), 1)
+  assert.equal(run.steers.length, 1)
+  assert.match(textOf(run.steers[0]), /later\.ts/)
+  assert.doesNotMatch(textOf(run.steers[0]), /first\.ts/)
 })
 
 await checkAsync('per-turn budget caps steers and rewords the second', async () => {
@@ -260,6 +287,7 @@ check('bad config throws at mount', () => {
   assert.throws(() => makeRun({ failStreak: 0 }), /positive integer/)
   assert.throws(() => makeRun({ evidence: 'yes' }), /must be a boolean/)
   assert.throws(() => makeRun({ mutationTools: [] }), /must not be empty/)
+  assert.throws(() => makeRun({ evidenceScope: 'loose' }), /evidenceScope/)
 })
 
 await checkAsync('OPS completed + ops_bash success closes without a nudge', async () => {
@@ -321,6 +349,22 @@ await checkAsync('parent and child sessions keep independent counters', async ()
   await run.stop(failures, 1, {}, 'parent')
   await run.stop(failures, 1, { delegationDepth: 1 }, 'child')
   assert.equal(run.steers.length, 2)
+})
+
+check('running the edited target program is strong evidence', () => {
+  const cmd = "Start-Process -FilePath E:/Steam/steamapps/common/Godot/godot.windows.opt.tools.64.exe -ArgumentList '--path',$proj,'res://tmp_perf_probe.tscn' -Wait"
+  assert.equal(classifyVerificationCommand(cmd, {}, ['godot-flight-simulator/tmp_perf_probe.tscn']).strong, true)
+})
+
+await checkAsync('real-world: a Godot target run with no exit marker closes without a nudge', async () => {
+  const run = makeRun()
+  const cmd = "Start-Process -FilePath E:/Steam/steamapps/common/Godot/godot.windows.opt.tools.64.exe -ArgumentList '--path',$proj,'res://tmp_perf_probe.tscn' -Wait"
+  await run.stop(events(
+    call(1, 'c1', 'write', { file_path: 'godot-flight-simulator/tmp_perf_probe.tscn' }), result(1, 'c1'),
+    call(1, 'c2', 'pwsh', { command: cmd }),
+    result(1, 'c2', { text: 'elapsed=53s\r\nPERF|60|26.0|28.56|150.00' }),
+  ), 1)
+  assert.equal(run.steers.length, 0)
 })
 
 console.log(`\n${passed} checks passed`)

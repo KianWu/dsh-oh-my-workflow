@@ -42,6 +42,8 @@ const DEFAULTS = Object.freeze({
   failStreak: 2,
   maxSteersPerTurn: 2,
   includeSubagents: true,
+  evidenceScope: 'balanced',
+  assumeOfficialShellSuccess: true,
   mutationTools: MUTATION_TOOLS,
   checkTools: SHELL_TOOLS,
   documentationSuffixes: DEFAULT_DOCUMENTATION_SUFFIXES,
@@ -61,6 +63,15 @@ function positiveInteger(config, key) {
   const value = config[key]
   if (value === undefined) return DEFAULTS[key]
   if (!Number.isInteger(value) || value < 1) throw new TypeError(`${name}: ${key} must be a positive integer`)
+  return value
+}
+
+function enumOption(config, key, allowed, fallback) {
+  const value = config[key]
+  if (value === undefined) return fallback
+  if (typeof value !== 'string' || !allowed.includes(value)) {
+    throw new TypeError(`${name}: ${key} must be one of ${allowed.join(', ')}`)
+  }
   return value
 }
 
@@ -89,6 +100,8 @@ export function normalizeOptions(raw = {}) {
     failStreak: positiveInteger(config, 'failStreak'),
     maxSteersPerTurn: positiveInteger(config, 'maxSteersPerTurn'),
     includeSubagents: booleanOption(config, 'includeSubagents'),
+    evidenceScope: enumOption(config, 'evidenceScope', ['balanced', 'strict'], DEFAULTS.evidenceScope),
+    assumeOfficialShellSuccess: booleanOption(config, 'assumeOfficialShellSuccess'),
     mutationTools,
     checkTools,
     documentationSuffixes,
@@ -121,6 +134,7 @@ export function evaluateTurn(outcomes, options = {}) {
   }
 
   const lastMutation = mutations.length === 0 ? -1 : mutations[mutations.length - 1].index
+  const firstMutation = mutations.length === 0 ? -1 : mutations[0].index
   const strong = verifications.filter(fact => fact.strong)
   const lastStrong = strong.length === 0 ? -1 : strong[strong.length - 1].index
 
@@ -128,7 +142,14 @@ export function evaluateTurn(outcomes, options = {}) {
   const unprovenFiles = [...new Set(unproven.flatMap(fact => fact.paths))]
   const docOnly = unprovenFiles.length > 0 && onlyDocumentation(unprovenFiles, documentationSuffixes)
 
-  const evidenceMissing = lastMutation >= 0 && lastStrong < lastMutation && !docOnly
+  const evidenceScope = options.evidenceScope === 'strict' ? 'strict' : 'balanced'
+  // balanced: one strong verification after the *first* change of the turn is
+  // enough; later small edits do not force another run. strict: the check must
+  // come after the *last* change.
+  const missingUnderScope = evidenceScope === 'strict'
+    ? lastMutation >= 0 && lastStrong < lastMutation
+    : lastMutation >= 0 && !(lastStrong > firstMutation)
+  const evidenceMissing = missingUnderScope && !docOnly
   const failures = failureSummary(list, threshold)
 
   let rule = 'allow'
@@ -139,7 +160,9 @@ export function evaluateTurn(outcomes, options = {}) {
     rule,
     mutationCount: mutations.length,
     lastMutation,
+    firstMutation,
     lastStrong,
+    evidenceScope,
     evidenceMissing,
     documentationOnly: docOnly,
     mutatedFiles: allMutatedFiles,
@@ -238,6 +261,7 @@ export function apply(ctx, rawConfig = {}) {
         documentationSuffixes: project.documentationSuffixes?.length > 0
           ? project.documentationSuffixes
           : options.documentationSuffixes,
+        assumeOfficialShellSuccess: options.assumeOfficialShellSuccess,
       }
 
       const analysis = evaluateTurn(toolOutcomes(current), { ...options, verification })
