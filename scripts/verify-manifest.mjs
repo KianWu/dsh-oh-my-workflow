@@ -81,7 +81,7 @@ if (pkg.bin === null || typeof pkg.bin !== 'object' || Object.keys(pkg.bin).leng
 }
 
 // ---- 5. files whitelist must be physically present ----
-const requiredFiles = ['cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'NOTICE.md', 'LICENSE']
+const requiredFiles = ['cordis.patch.yml', 'index.mjs', 'README.md', 'CHANGELOG.md', 'NOTICE.md', 'LICENSE']
 const whitelist = Array.isArray(pkg.files) ? pkg.files : []
 for (const file of requiredFiles) {
   if (!whitelist.includes(file)) fail(`files 白名单缺少 ${file}`)
@@ -90,6 +90,23 @@ for (const file of requiredFiles) {
 for (const dir of ['preset', 'bin', 'scripts', 'test']) {
   if (!whitelist.includes(dir)) fail(`files 白名单缺少目录 ${dir}`)
   if (!existsSync(join(ROOT, dir))) fail(`文件清单里的目录 ${dir} 不存在`)
+}
+
+// ---- 5b. entry resolvability ----
+// `main` must point at a real file that the files whitelist actually ships.
+// The 0.1.0-era package had no entry at all: install succeeded, then
+// `require.resolve('dsh-oh-my-workflow')` threw MODULE_NOT_FOUND — caught by a
+// marketplace reviewer, not by us. Same lesson as the 0.4.0 backtick bug:
+// shape checks pass, runtime import fails, so pin both here.
+const main = pkg.main
+if (typeof main !== 'string' || main === '') {
+  fail('package.json 没有 main 字段', '无入口的包装完后 require.resolve 直接 MODULE_NOT_FOUND')
+} else {
+  const mainPath = main.replace(/^\.\//, '')
+  if (!existsSync(join(ROOT, mainPath))) fail(`main 指向的 ${mainPath} 不存在`)
+  if (!whitelist.includes(mainPath)) {
+    fail(`main 指向的 ${mainPath} 不在 files 白名单里`, 'npm pack 不会带它，装完就没有入口')
+  }
 }
 
 if (failures.length > 0) {

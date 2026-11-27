@@ -19,12 +19,15 @@ let failed = 0
 async function check(modulePath) {
   try {
     const namespace = await import(modulePath)
-    if (typeof namespace.apply !== 'function') {
+    // The package entry is a metadata module, not a preset row; everything
+    // else the preset mounts must export an apply() the loader can call.
+    const isEntry = modulePath.endsWith('/index.mjs')
+    if (!isEntry && typeof namespace.apply !== 'function') {
       console.error(`  - ${modulePath}: exports no apply() function`)
       failed += 1
       return
     }
-    console.log(`  ok  ${modulePath} loads; apply() exported`)
+    console.log(`  ok  ${modulePath} loads${isEntry ? ' (package entry)' : '; apply() exported'}`)
   } catch (error) {
     console.error(`  - ${modulePath}: import failed: ${String((error && error.message) || error)}`)
     failed += 1
@@ -33,6 +36,7 @@ async function check(modulePath) {
 
 // Every `./xxx.mjs` row mounted by preset/agent.cordis.yml or cordis.patch.yml.
 const LOCAL_MODULES = [
+  './index.mjs',
   './preset/behavior.mjs',
   './preset/compaction.mjs',
   './preset/turn-guard.mjs',

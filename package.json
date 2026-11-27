@@ -1,8 +1,13 @@
 {
   "name": "dsh-oh-my-workflow",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "oh-my-workflow：开箱即用的 AI 软件交付工作流。借鉴 Karpathy 的 AI 编程四原则（先想清楚、保持简单、只做必要修改、以可验证目标驱动执行）与 Claude Code 的行为系统提示词（信息足够就动手、一轮之内做完、只报告实际发生的事），融合 Matt Pocock 的工程技能包，内置 22 个技能、常驻行为规范段、九段式结构化压缩与“改完必须真验证”的轮次守卫，覆盖需求追问 → 写规格 → 拆工单 → 实现 → 评审 → 验证 → 交接；深入档文档优先、执行解耦，复杂/深入任务自动拆分并行委派子代理以控制上下文，让 AI 交付的代码真正可验收。",
   "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./package.json": "./package.json"
+  },
   "engines": {
     "node": "^22.19.0 || >=24.0.0",
     "dsh": ">=0.2.2-rc.1 <0.2.3-0"
@@ -36,6 +41,7 @@
   },
   "files": [
     "cordis.patch.yml",
+    "index.mjs",
     "preset",
     "bin",
     "scripts",

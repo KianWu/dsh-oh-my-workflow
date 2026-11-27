@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-11-27
+
+### Fixed
+
+- **补齐包入口**（awesome-dsh-plugin 收录评审指出）：0.1.0–0.4.1 的 `package.json` 一直没有 `main` 字段，包里也没有任何可被 Node 解析的入口——安装成功后 `require.resolve('dsh-oh-my-workflow')` / `import 'dsh-oh-my-workflow'` 直接 `MODULE_NOT_FOUND`。新增 `index.mjs`（纯元数据导出：name/version/description/bundlePatch/peerDependencies，不挂载任何东西——本包是 bundle 行 + CLI，不是单个 Cordis 插件，本来就没有 `apply()` 可导），声明 `main` 与 `exports`，并列入 `files` 白名单。
+- 防再犯：`verify-manifest.mjs` 新增 5b 断言——`main` 必须指向真实存在且在 `files` 白名单里的文件；`import-smoke.test.mjs` 把 `./index.mjs` 纳入真实加载清单。
+- 说明：DSH 宿主不受此缺陷影响——bundle 组合走 `dsh.bundle.patch` → `cordis.patch.yml` → 包内文件路径，从不 import 包根；这是按「装上就该能解析」的收录标准补的完整性。
+
 ## [0.4.1] - 2026-11-27
 
 ### Fixed
