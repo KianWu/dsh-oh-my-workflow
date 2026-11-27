@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-11-27
+
+### Fixed
+
+- **修复 0.4.0 致命缺陷：`behavior.mjs` 模板字符串里的裸反引号**。第 74 行「落到 \`.agent/workflow/\`」两侧的反引号未转义，直接终止了模板字面量，模块加载即抛 `ReferenceError: workflow is not defined`，`workflow-behavior` 行报 `never started`，**整个 Workflow 预设无法挂载，新会话无法创建**。根因是上轮「文档禁令冲突」修复的编辑引入；verify-mount 的静态检查抓不到这类语法错误。
+- 新增 `test/import-smoke.test.mjs` 并接入 `npm test` 与 `prepublishOnly`：**真实 import** preset 挂载的全部本地行模块（dsh-ops 依赖的两个降级为解析检查）。已做反向验证——把该 bug 重新注入时烟测确实失败。0.4.0 的教训：静态断言不能替代真实加载。
+
 ## [0.4.0] - 2026-11-27
 
 ### Added
