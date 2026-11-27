@@ -29,12 +29,12 @@
       主线：复述目标 → 判断档位 → 实现 → 验证 → 汇报。
       - 快速档：目标明确、改动小、风险低；直接改并验证。
       - 标准档：多文件或可见行为变化；先给 3–6 步简短计划，再实现。
-      - 深入档：需求含糊、高风险、结构变化；先澄清/建模/写规格，经用户确认后实现，复杂时拆分并行委派。
+      - 深入档：需求含糊、高风险、结构变化；先澄清/建模/写规格，文档落盘后停在执行前，由用户决定何时按文档执行，复杂时拆分并行委派。
       - 长任务是正交分支：用 st-ledger / st-context-reset / to-tickets / handoff。
 
       多 agent 协作：复杂/深入档或长任务，一旦能拆出 2 个以上边界清晰、可独立推进的子任务，先把工作拆成自包含任务并主动委派——用 subagent（全新上下文，可并行）或 subagent_fork（继承当前上下文）；宽搜索、批量阅读、日志/数据普查、独立评审优先交给子代理；大批量扇出用 workflow。主线只保留目标、关键决策、跨子任务集成与验收；子代理只回传结论、证据（命令/退出码/文件:行）与文件指针，不回传大段原始输出，避免上下文膨胀。简单任务不要为委派而委派。
 
-      项目入口：进入代码项目先查 `.agent/AGENTS.md`；存在则读取遵循、不覆盖；缺失则加载 wf-project-init，扫描后创建，只写事实、未知标「待确认」。深入/长任务记录放 `.agent/workflow/`，快速档不建过程文档。
+      项目入口：进入代码项目先查 `.agent/AGENTS.md`；存在则读取遵循、不覆盖；缺失则加载 wf-project-init，扫描后创建，只写事实、未知标「待确认」。深入/长任务记录放 `.agent/workflow/`（长任务进度按任务命名，一个任务一个文件），快速档不建过程文档。
 
       工程基线：复用优先；解根因；最小 diff；开工前明确边界与验收；只清理本次孤儿；同步长期文档；证据先于结论。
 
@@ -52,6 +52,17 @@
   name: '@deepseek-ai/dsh-agent-instructions'
   config:
     maxBytes: 65536
+
+# ── behavioural contract ────────────────────────────────────────────────────
+
+# How to finish a turn, as opposed to what to do (persona) or which tool to
+# reach for (each `tool:*` row). It registers its own section at order 1 with
+# `interpolate: false`, so the prose ships verbatim and a literal `{{` in it
+# cannot fail a render — the persona row interpolates strictly and cannot offer
+# that guarantee. Keeping it out of `persona.prefix` also keeps the identity
+# slot readable and lets the whole block be switched off on its own.
+- id: workflow-behavior
+  name: ./behavior.mjs
 
 # ── OPS Native integration ──────────────────────────────────────────────────
 
@@ -170,7 +181,13 @@
 
           Resolve discoverable facts by inspection. Use ask_user_question only for user-owned choices or material ambiguity that inspection cannot answer. Do not ask the user where code lives or how current behavior works when you can find out.
 
-          Make the plan decision-complete: state the goal and success criteria; group implementation changes by subsystem; identify public API, schema, and data-flow changes; cover edge cases, failure modes, tests, acceptance criteria, and explicit assumptions. Keep it concise enough to review but detailed enough that another engineer can implement it without making design decisions.
+          Make the plan decision-complete and concise enough to scan quickly while detailed enough to execute without making design decisions:
+          - Begin with a **Context** section: why this change is being made — the problem or need it addresses, what prompted it, and the intended outcome.
+          - Include only your recommended approach, not all alternatives. If you are weighing a choice, give a recommendation with its main tradeoff instead of a survey.
+          - Name the critical files to be modified. For a change that repeats one pattern across many files, describe the pattern once and list a few representative paths rather than enumerating every file or line number.
+          - Identify public API, schema, data-flow, edge-case, and failure-mode changes.
+          - Reference the existing functions and utilities you found that should be reused, with their file paths.
+          - Include a **Verification** section describing how to test the changes end-to-end (running the code, tests, or tools).
 
           When ready, call exit_plan_mode with the complete plan markdown, starting with a # title. Make exit_plan_mode the only and final tool call in that assistant response: it presents the plan for approval, and implementation begins only in a later step after approval. Do not paste the final plan as a plain reply or ask "should I proceed?" through prose or ask_user_question. If review rejects it, incorporate the feedback and present again. If the review channel is unavailable or aborted, stay in plan mode and ask the user to switch modes manually; do not proceed with implementation.
 
@@ -179,6 +196,14 @@
 # `compaction-basic` reads `toolResultPruner` through `ctx.get`, so the pruner
 # shares this realm. `tokenMeter` stays host-plane: its projection units are
 # process-wide, so a preset must not own them.
+#
+# `workflow-compaction` runs AFTER the engine row and wraps the instance it
+# mounted. It replaces only the trailing summarization directive and strips the
+# `<analysis>` scratchpad, so threshold, retention, overflow recovery and
+# checkpoint locking stay exactly as the host defines them. It patches an
+# instance instead of subclassing because `@deepseek-ai/dsh-compaction-basic`
+# lives inside the DSH application archive and is not resolvable from the
+# profile — a failed import there would leave this group with no engine at all.
 - id: compaction
   name: cordis:group
   group: true
@@ -188,6 +213,9 @@
   config:
     - id: compaction-basic
       name: '@deepseek-ai/dsh-compaction-basic'
+
+    - id: workflow-compaction
+      name: ./compaction.mjs
 
     - id: command-compact
       name: '@deepseek-ai/dsh-command-compact'

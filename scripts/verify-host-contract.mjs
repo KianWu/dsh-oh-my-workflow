@@ -166,6 +166,25 @@ check('plugin-manager selectBundle does not clear selectedDefault', () => {
   return 'selectBundle 只改 dsh.profile.bundles'
 })
 
+check('compaction engine is mounted before the directive override runs', () => {
+  // `workflow-compaction` reads `ctx.get('compaction')`, so the row that
+  // provides the engine must come first in the same group. Reversing the two
+  // rows would leave the group with no backend and no warning at install time.
+  const group = preset.slice(preset.indexOf('- id: compaction\n'))
+  const engineAt = group.indexOf("name: '@deepseek-ai/dsh-compaction-basic'")
+  const patchAt = group.indexOf('name: ./compaction.mjs')
+  if (engineAt === -1) throw new Error('compaction 组里没有宿主引擎行')
+  if (patchAt === -1) throw new Error('compaction 组里没有 ./compaction.mjs 行')
+  if (patchAt < engineAt) throw new Error('./compaction.mjs 必须排在宿主引擎之后，否则取不到引擎实例')
+  return 'engine -> directive override'
+})
+
+check('compaction service name is `compaction`', () => {
+  const text = source('dsh-compaction', 'lib/index.js')
+  must(text, 'super(ctx, "compaction")', 'CompactionEngine 的 service 名')
+  return 'ctx.compaction'
+})
+
 if (failures.length === 0) {
   console.log(`\n✅ 宿主契约校验通过（${passed} 项）：守卫依赖的事件、steer、事件日志与生命周期缺口仍在`)
   process.exit(0)

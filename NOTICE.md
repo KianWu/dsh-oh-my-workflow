@@ -46,6 +46,25 @@ kept as-is.
 
 Skills original to this project: `wf-route`, `wf-project-init`, `wf-engineering`.
 
+## Original to this project (no third-party provenance)
+
+- `preset/behavior.mjs` — the behavioural contract. The rules are an original
+  Chinese distillation of the behaviours that measurably reduce wasted turns
+  (act on the most likely reading, finish in one turn, never re-derive settled
+  facts, report only observed results, brief a subagent like a colleague).
+  They were written for this preset's own three-tier routing and OPS tool
+  surface. No third-party prompt text is copied or translated.
+- `preset/compaction.mjs` — the checkpoint directive and the instance patch.
+  The nine-section shape is aligned with the host's own default directive so
+  the durable checkpoint stays compatible; the wording, the `<analysis>`
+  scratchpad, the pruned-tool-result rules and the "all user messages" section
+  are this project's.
+
+The `dsh-claude-preset` project (MIT) was read while designing these two
+modules, and its four mechanics — persona replacement, scoped tool-description
+shadowing, plan structure, compaction subclassing — informed the trade-offs
+recorded in CHANGELOG. No file from that project is vendored here.
+
 ## MIT License text (applies to the third-party portions above)
 
 ```

@@ -77,12 +77,12 @@ description: "初始化或补充 .agent/AGENTS.md 与 .agent/workflow 记录布�
    ├─ specs/
    ├─ tickets/
    ├─ adr/
-   ├─ PROGRESS.md
+   ├─ PROGRESS-<task-slug>.md   （每个长任务一个）
    └─ handoff/
 ```
 
 - 深入档：按需创建本次工作需要的 `specs/`、`plans/` 或 `adr/`。
-- 长任务：额外维护 `PROGRESS.md`、`tickets/`、`handoff/`。
+- 长任务：每个任务维护专属的 `PROGRESS-<task-slug>.md`，配合 `tickets/`、`handoff/`；不同任务不共用一个进度文件。
 - 快速档与普通标准档：不创建。
 - 项目已有布局时优先遵循项目约定。
 

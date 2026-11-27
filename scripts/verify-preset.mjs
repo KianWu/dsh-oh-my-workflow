@@ -75,6 +75,7 @@ for (const [label, pattern] of metadata) {
 const requiredRows = [
   ['persona', '常驻人格'],
   ['agent-instructions', '项目规则注入'],
+  ['workflow-behavior', '行为规范段落'],
   ['ops-integration', 'OPS Native integration'],
   ['turn-guard', '轮次守卫'],
   ['skill-filesystem', '技能根'],
@@ -123,7 +124,47 @@ if (!capMatch) {
   if (longest.length > cap) fail(`catalogDescriptionMaxLength=${cap} 会截断 ${longest.name}（${longest.length} 字符）`)
 }
 
-// ---- 6. package manifest bits that make the preset disappear if wrong ----
+// ---- 6. behavioural contract row ----
+// The section is worthless if it interpolates (a literal `{{` would kill the
+// first render) or if it is ordered after the tool sections (rules about how to
+// work must read before rules about which tool to call).
+const behavior = read(join(presetDir, 'behavior.mjs'), 'preset/behavior.mjs')
+if (!/name: \.\/behavior\.mjs/.test(preset)) fail('preset/agent.cordis.yml 没有挂载 ./behavior.mjs')
+if (!/interpolate:\s*false/.test(behavior)) {
+  fail('behavior.mjs 的 systemPrompt.section 必须设置 interpolate: false', '正文含 `{{` 时会话会在首次渲染时直接失败')
+}
+const behaviorOrder = behavior.match(/BEHAVIOR_ORDER\s*=\s*(-?\d+)/)
+if (!behaviorOrder) {
+  fail('behavior.mjs 没有声明 BEHAVIOR_ORDER')
+} else if (Number(behaviorOrder[1]) >= 1000) {
+  fail(`BEHAVIOR_ORDER=${behaviorOrder[1]} 排在了 tool:* 段落（1000+）之后`, '工作方式的规则应先于工具规则被读到')
+}
+if (!/ctx\.systemPrompt\.section\(/.test(behavior)) fail('behavior.mjs 没有注册 systemPrompt 段落')
+
+// ---- 7. compaction backend ----
+const compaction = read(join(presetDir, 'compaction.mjs'), 'preset/compaction.mjs')
+if (!/name: \.\/compaction\.mjs/.test(preset)) {
+  fail('preset/agent.cordis.yml 的 compaction 组没有挂载 ./compaction.mjs')
+}
+// The engine row must stay: this module wraps the mounted instance, it does not
+// provide one, so removing the host row would leave the group with no backend.
+if (!/id: compaction-basic\n\s+name: '@deepseek-ai\/dsh-compaction-basic'/.test(preset)) {
+  fail('compaction 组里必须保留宿主的 compaction-basic 行', 'compaction.mjs 只包装已挂载的引擎，自己不再提供引擎')
+}
+if (!/ctx\.get\('compaction'\)/.test(compaction)) {
+  fail('compaction.mjs 没有取已挂载的引擎实例', '应从同组已挂载的引擎读取，而不是自己 import 宿主包')
+}
+if (/from '@deepseek-ai\/dsh-compaction-basic'|import\('@deepseek-ai\/dsh-compaction-basic'\)/.test(compaction)) {
+  fail('compaction.mjs 不得 import 宿主压缩包', '该包在 app.asar 内，profile 侧无法解析，导入失败会让整个组失去引擎')
+}
+if (!/tool result middle pruned/.test(compaction)) {
+  fail('compaction.mjs 的指令没有覆盖被裁剪的工具结果标记', '压缩器会凭空编造被裁掉的中段内容')
+}
+if (!/restore|catch/.test(compaction)) {
+  fail('compaction.mjs 缺少失败回退', '补丁失败时必须保留宿主原有行为')
+}
+
+// ---- 8. package manifest bits that make the preset disappear if wrong ----
 if (pkg.dsh?.bundle?.patch !== './cordis.patch.yml') fail('dsh.bundle.patch 应为 ./cordis.patch.yml')
 if (!pkg.files?.includes('preset')) fail('files 白名单里没有 preset')
 if (!pkg.files?.includes('cordis.patch.yml')) fail('files 白名单里没有 cordis.patch.yml')

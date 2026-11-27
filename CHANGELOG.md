@@ -4,6 +4,32 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-11-27
+
+### Added
+
+- **行为规范段**（`preset/behavior.mjs`，新增 `workflow-behavior` 行）：把减少空转轮次的规则写成常驻提示词段，独立注册 `workflow:behavior`（order 1，`interpolate: false`）。内容覆盖：信息足够就动手、只按最可能的读法推进并说明取了哪种、一轮之内做完、不重新论证已定事实、只报告实际发生的事（失败第一句说）、结论先行、代码风格（默认不写注释、不过早抽象、不为不可能的情况兜底）、子代理简报纪律。约 2.3 KB，中文蒸馏，不引入第三方提示词原文。
+  - 之所以独立成行而不是扩写 `persona.prefix`：persona 严格插值，正文里一个 `{{` 就会让会话首次渲染直接失败；独立段落可单独关闭且不影响身份槽。
+- **结构化压缩**（`preset/compaction.mjs`，新增 `workflow-compaction` 行）：在 `compaction-basic` 之后包装宿主已挂载的引擎实例，只替换最后一条总结指令并剥离 `<analysis>` 草稿。相对宿主默认指令新增：`<analysis>` 草稿段、九段式检查点、**明确说明被裁剪工具结果**（`[... tool result middle pruned ...]`）的处置方式、单独的「所有用户消息」段、安全约束原文保留。仅替换最后一条 user 消息，前面消息按引用保留，KV 缓存前缀不失效。
+- 计划模式引导改写「Make the plan decision-complete」一段：改为 Claude 结构——先给 **Context**（为什么做、预期产出）、只给推荐方案（要权衡就给推荐+主要代价，不做方案罗列）、跨多文件重复同一模式时描述一次并给代表性路径、明确 API/边界/失败模式、复用已有工具需带路径、必含 **Verification** 验证段。该段是宿主 `plan:policy`（order 500，条件渲染）的部署侧内容，仅计划模式激活时注入，不影响普通轮次。
+- 校验加固：`verify-preset.mjs` 新增行为段与压缩段的装配断言（含「不得 import 宿主压缩包」）；`verify-host-contract.mjs` 新增「引擎行必须在补丁行之前」与 `compaction` service 名检查；`routing.test.mjs` 从 10 项增至 15 项。
+
+### Changed
+
+- **标准档加入轻量澄清**：路由表标准档行为改为「轻量澄清（grilling 一轮：缺口问题一次问完，给推荐答案）→ 简短计划 → 实现 → 验证 → 自查」，并明确「只问答案会改变做法的问题；目标真正明确就跳过，不为问而问」。快速档维持不追问。
+- **深入档改为文档优先、执行解耦**：澄清/建模/追问完成后不直接实现——规格/计划/ADR 落盘到 `.agent/workflow/`，汇报文档位置后**停在执行前**；是否执行、何时执行、按什么顺序（implement / implement-spec / code-review）由用户决定。用户明说「澄清完直接做」时例外连续推进。persona 与反模式同步。
+- `turn-guard` 的 steer 文案改为指向提示词中已有的规则（「把结果放进同一段汇报」「然后正常收尾」），从「新要求」变成「提醒」，减少守卫与提示词互相矛盾的情况。
+
+### Notes
+
+- **计划模式与既有机制的衔接**：`plan:policy`（order 500）仅在计划模式激活时条件渲染，晚于 behavior（order 1）。为此 behavior 的边界段显式让位——计划模式期间只探索不实现；深入档的「澄清/建模/写规格经用户确认」明确属于「下一步必须由用户决定」，不受「信息足够就动手」约束；汇报段对「不创建过程文档」的禁令改为按分档规则执行（快速档不建、标准/深入档落 `.agent/workflow/`）。守卫与计划模式无交互：计划模式轮次是纯探索、零改动，evidence 规则读的是「改动后必须有验证」，纯探索轮不会触发打回。
+- 压缩补丁的失败策略是**完全回退**：取不到 `ctx.get('compaction')`、引擎没有 `summarize` 钩子、或补丁抛错时，只记一条日志，宿主原有压缩行为不变。压缩永远不该因为本行存在而变差。引擎的 `regionDependencies` 以 `(input, owner, abort) => this.summarize(...)` 动态读取实例属性，因此包装实例对所有压缩路径（自动压力、溢出恢复、`/compact`）一致生效。
+- 未采用「子类化 `BasicCompactionEngine`」方案：该包位于 DSH 应用归档（`app.asar`）内，profile 侧 `require.resolve` 无法解析，导入失败会让整个 `compaction` 组失去引擎——比不压缩严重得多。
+
+### Fixed
+
+- **长任务进度文件互相覆盖**：`st-context-reset` 原文写「create PROGRESS.md at the repo root」且第 5 步是整篇重写指令，而 `wf-project-init`/persona 说 `.agent/workflow/PROGRESS.md`、`st-plan-loop` 说「PLAN.md, or the PROGRESS.md」——三个技能给出的路径互相矛盾，导致后一个长任务直接覆盖前一个未完成任务的状态。现在统一为：每个长任务一个 `PROGRESS-<task-slug>.md`（放 `.agent/workflow/`），**Goal 仍描述当前任务才续写，描述别的任务永不覆盖、永不追加**；`st-plan-loop`/`st-verify-loop`/`st-unstick`/`wf-route`/`wf-project-init`/persona 六处引用同步该口径。
+
 ## [0.3.0] - 2026-11-25
 
 ### Added

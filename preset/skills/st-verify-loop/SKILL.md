@@ -17,7 +17,7 @@ Prove a change works by running the real check and fixing what it reports, not w
 6. Fix the cause, not the symptom. Do not add a special case for the one input that the test uses.
 7. Rerun the same command. Count this as one iteration.
 8. When the narrow check passes, run the wider one once (the full test suite, the build, or a lint) to catch breakage elsewhere.
-9. Paste the final passing output (the command and its last lines) in your reply or in PROGRESS.md.
+9. Paste the final passing output (the command and its last lines) in your reply or in the task's PROGRESS file (see st-context-reset).
 
 ## Stop when
 

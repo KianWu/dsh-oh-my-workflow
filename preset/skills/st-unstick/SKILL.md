@@ -17,7 +17,7 @@ When two fixes fail the same way, the problem is usually a wrong belief, not a w
 6. If the assumption holds, list 3 different approaches. "Different" means another mechanism, library, layer or data path, not a tweak of the same edit. Give each approach one line on cost and risk.
 7. Pick one approach and say why in one sentence.
 8. Restart from a clean state if the failed attempts left debris: revert them with git (`git stash` or `git checkout -- <files>`), then apply only the chosen approach.
-9. Record the false assumption or the chosen approach in PROGRESS.md (see st-context-reset) so a later session does not repeat the attempts.
+9. Record the false assumption or the chosen approach in the task's PROGRESS file (see st-context-reset) so a later session does not repeat the attempts.
 10. Return to st-verify-loop with the new approach.
 
 ## Stop when
