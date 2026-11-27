@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-11-27
+
+### Changed
+
+- **README 重写**：新增「设计来源」一节，逐条声明 Karpathy 四原则、Claude Code 行为提示词（组织方式借鉴，正文原创）、Matt Pocock 技能包（MIT）、dsh-stack（MIT）、DSH standard 预设与 dsh-ops 各自的贡献边界；「What you get」清单改为「核心机制」（用户视角）与「实现说明」（关键取舍）两层；全文改为陈述句，补充五个 `disable-model-invocation` 技能的权限设计说明与压缩阈值等具体数值。仅文档变更，无代码改动。
+
 ## [0.4.2] - 2026-11-27
 
 ### Fixed
